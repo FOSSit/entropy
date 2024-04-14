@@ -11,3 +11,11 @@ can reflect accurately the compression ratios possible for byte level compressio
 ```
 python3 entropy.py file1, file2, ... 
 ```
+
+## Install as CLI Command
+```bash
+git clone 
+cd entropy
+pip install .
+entropy [-b/--bit (optional)] files...
+```
