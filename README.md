@@ -9,5 +9,5 @@ can reflect accurately the compression ratios possible for byte level compressio
 
 
 ```
-python3 entropy.py source.txt
+python3 entropy.py file1, file2, ... 
 ```
