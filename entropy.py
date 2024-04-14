@@ -1,23 +1,8 @@
 import sys
 import pathlib as pt
-from math import log2
 import numpy as np
 
-def _cl_co():
-    def co(i):
-        o = 0
-        for _ in range(8):
-            o += i & 1
-            i >>= 1
-        return o
-
-    LUT = [co(i) for i in range(256)]
-
-    return LUT.__getitem__ # fastest way to count bits in a byte
-
-bitcount = _cl_co()
-
-def calculate_entropy(file_path):
+def calculate_byte_entropy(file_path):
     tot = 0
     counts = np.zeros(256, dtype=np.uint32)
     with open(file_path, "rb") as fp:
@@ -43,20 +28,50 @@ def calculate_entropy(file_path):
     if ent == 0: ent = -1 * ent
     return ent, tot
 
+def calculate_bit_entropy(file_path):
+    tot = 0
+    counts = np.zeros(2, dtype=np.uint32)  # 0 and 1 counts
+    with open(file_path, "rb") as fp:
+        while (b := fp.read(1)):
+            byte_val = int.from_bytes(b, byteorder="big")
+            for i in range(8):
+                bit_val = (byte_val >> i) & 1
+                counts[bit_val] += 1
+                tot += 1
+
+    probs = counts / tot
+    ent = -1 * (probs * np.log2(np.where(probs == 0, np.ones(1), probs))).sum()
+    if ent == 0: ent = -1 * ent
+    return ent, tot
+
 def main(argv=sys.argv):
-    if len(argv) < 2:
-        print("Provide file paths as arguments")
+    if len(argv) < 3:
+        print("Provide 'byte' or 'bit' and file paths as arguments")
         return
 
-    for file_path in argv[1:]:
+    mode = argv[1]
+    if mode not in ['byte', 'bit']:
+        print("Invalid mode. Choose 'byte' or 'bit'")
+        return
+
+    for file_path in argv[2:]:
         file_path = pt.Path(file_path)
-        ent, tot = calculate_entropy(file_path)
-        print("Entropy per byte for", file_path.name, ":", ent, "bits or", ent / 8, "bytes")
-        print("Entropy of", file_path.name, ":", ent * tot, "bits or", ent * tot / 8, "bytes")
-        print("Size of", file_path.name, ":", tot, "bytes")
-        print("Delta for", file_path.name, ":", tot - ent * tot / 8, "bytes compressible theoretically")
-        print("Best Theoretical Coding ratio for", file_path.name, ":", 8 / ent)
-        print()
+        if mode == 'byte':
+            ent, tot = calculate_byte_entropy(file_path)
+            print("Byte-level entropy for", file_path.name, ":", ent, "bits or", ent / 8, "bytes")
+            print("Byte-level entropy of", file_path.name, ":", ent * tot, "bits or", ent * tot / 8, "bytes")
+            print("Size of", file_path.name, ":", tot, "bytes")
+            print("Delta for", file_path.name, ":", tot - ent * tot / 8, "bytes compressible theoretically")
+            print("Best Theoretical Coding ratio for", file_path.name, ":", 8 / ent)
+            print()
+        else:
+            ent, tot = calculate_bit_entropy(file_path)
+            print("Bit-level entropy for", file_path.name, ":", ent, "bits")
+            print("Bit-level entropy of", file_path.name, ":", ent * tot, "bits")
+            print("Size of", file_path.name, ":", tot, "bits")
+            print("Delta for", file_path.name, ":", tot - ent * tot, "bits compressible theoretically")
+            print("Best Theoretical Coding ratio for", file_path.name, ":", 1 / ent)
+            print()
 
 if __name__ == "__main__":
     main()
