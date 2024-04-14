@@ -7,7 +7,8 @@ to identify bit sequences as symbols such that it minimises the entropy.
 Here we assume that a byte is the only symbol encoded and output the entropy which
 can reflect accurately the compression ratios possible for byte level compression algorithms
 
-
 ```
-python3 entropy.py source.txt
+To run this
+python3 entropy.py source.txt byte     - for getting values in byte
+python3 entropy.py source.txt bit      - for getting value in bit
 ```
