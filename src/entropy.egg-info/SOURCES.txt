@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/__init__.py
+src/entropy.py
+src/entropy.egg-info/PKG-INFO
+src/entropy.egg-info/SOURCES.txt
+src/entropy.egg-info/dependency_links.txt
+src/entropy.egg-info/entry_points.txt
+src/entropy.egg-info/top_level.txt
