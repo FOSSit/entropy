@@ -18,7 +18,10 @@ def _cl_co():
 bitcount = _cl_co()
 
 def main(argv=sys.argv):
-    if len(argv) == 1:
+        bit = False
+        files = []
+        if len(argv[1:]) == 0:
+            
         print("Provide a file")
         return
 
