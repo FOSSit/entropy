@@ -1,6 +1,7 @@
 import sys
 import pathlib as pt
 import argparse
+import os
 from math import log2
 import numpy as np
 
@@ -19,15 +20,24 @@ def _cl_co():
 bitcount = _cl_co()
 
 parser = argparse.ArgumentParser()
-parser.add_argument("FILE")
+parser.add_argument("FILE", nargs="+")
 parser.add_argument("-b", "--bits",
                     help="Toggle calculation of bit level entropy",
                     action="store_true")
 
 def main():
     args = parser.parse_args()
+    for file in args.FILE:
+        entropy(file, args.bits)
 
-    f = pt.Path(args.FILE)
+def entropy(filename, bitlevel = False):
+    if not os.path.exists(os.path.join(os.getcwd(), filename)):
+        print(f"Error: {filename} does not exists")
+        return
+
+    print(f"=== {filename} ===")
+
+    f = pt.Path(filename)
 
     tot = 0
     counts = np.zeros(256, dtype=np.uint32)
@@ -36,7 +46,7 @@ def main():
         while (b := fp.read(256)):
             i = -1
             for i in range(7, len(b), 8):
-                if args.bits:
+                if bitlevel:
                     h += bitcount(b[i]) \
                         + bitcount(b[i - 1]) \
                         + bitcount(b[i - 2]) \
@@ -58,7 +68,7 @@ def main():
                     counts[b[i - 7]] += 1
 
             for i in range(i + 1, len(b)):
-                if args.bits:
+                if bitlevel:
                     tot += 8
                     h += bitcount(b[i])
                 else:
@@ -73,13 +83,13 @@ def main():
     print("Entropy of file: ", ent * tot, "bits or", ent * tot / 8, "bytes")
     print("Size of file: ", tot, "bytes")
     print("Delta: ", tot - ent * tot / 8, "bytes compressable theoritically")
-    if (not args.bits):
+    if (not bitlevel):
         print("Best Theoritical Coding ratio: ", 8 / ent)
 
     # Realised late, I could have calculated byte entropy and wouldn't need
     # bit counting
     # Realizing that I needed bit entropy after all :)
-    if args.bits:
+    if bitlevel:
         p1 = h / tot
         p0 = (tot - h) / tot
         print("Probability to be high: ", p1, h, tot)
@@ -88,6 +98,8 @@ def main():
         print("Informational entropy per bit: ", ent, "bits")
         print("Entropy per byte: ", ent * 8, "bits")
         print("Entropy of entire file: ", ent * tot, "bits")
+
+    print()
 
 if __name__ == "__main__":
     main()
