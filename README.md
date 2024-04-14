@@ -9,5 +9,8 @@ can reflect accurately the compression ratios possible for byte level compressio
 
 
 ```
-python3 entropy.py source.txt
+To run this 
+python3 entropy.py source.txt byte     - for getting values in byte
+python3 entropy.py source.txt bit      - for getting value in bit
+
 ```

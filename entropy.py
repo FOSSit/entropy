@@ -1,87 +1,48 @@
 import sys
-import pathlib as pt
-from math import log2
-import numpy as np
 import argparse
+from pathlib import Path
+from collections import Counter
+from math import log2
 
-def _cl_co():
-    def co(i):
-        o = 0
-        for _ in range(8):
-            o += i & 1
-            i >>= 1
-        return o
-
-    LUT = [co(i) for i in range(256)]
-
-    return LUT.__getitem__ # fastest way to count bits in a byte
-
-bitcount = _cl_co()
+def bitcount(i):
+    return bin(i).count('1')
 
 def main(argv=sys.argv):
     parser = argparse.ArgumentParser(description='Calculate the entropy of a file')
     parser.add_argument('file', type=str, help='Path to the input file')
-
+    parser.add_argument('choice', type=str, help='Calculation method: "byte" or "bit"')
     args = parser.parse_args(argv[1:])
 
-    f = pt.Path(args.file)
-    if len(argv) == 1:
-        print("Provide a file")
+    file_path = Path(args.file)
+
+    if not file_path.exists():
+        print("File not found")
         return
 
-    tot = 0
-    counts = np.zeros(256, dtype=np.uint32)
-    # h = 0
-    with f.open("rb") as fp:
-        while (b := fp.read(256)):
-            i = -1
-            for i in range(7, len(b), 8):
-                # h += bitcount(b[i]) \
-                # + bitcount(b[i - 1]) \
-                # + bitcount(b[i - 2]) \
-                # + bitcount(b[i - 3]) \
-                # + bitcount(b[i - 4]) \
-                # + bitcount(b[i - 5]) \
-                # + bitcount(b[i - 6]) \
-                # + bitcount(b[i - 7])
-                # tot += 64
-                tot += 8
-                counts[b[i]] += 1
-                counts[b[i - 1]] += 1
-                counts[b[i - 2]] += 1
-                counts[b[i - 3]] += 1
-                counts[b[i - 4]] += 1
-                counts[b[i - 5]] += 1
-                counts[b[i - 6]] += 1
-                counts[b[i - 7]] += 1
+    total_bytes = 0
+    byte_counts = Counter()
+    total_bits_set = 0
 
-            for i in range(i + 1, len(b)):
-                # tot += 8
-                # h += bitcount(b[i])
-                counts[b[i]] += 1
-                tot += 1
+    with file_path.open("rb") as file:
+        for chunk in iter(lambda: file.read(256), b''):
+            for byte in chunk:
+                byte_counts[byte] += 1
+                total_bits_set += bitcount(byte)
+                total_bytes += 1
 
-    probs = counts / tot
-    ent = -1 * (probs * np.log2(np.where(probs == 0, np.ones(1), probs))).sum()
-    if ent == 0: ent = -1 * ent
-    print(probs)
-    print(counts)
-    print("Entropy per byte: ", ent, "bits or", ent / 8, "bytes")
-    print("Entropy of file: ", ent * tot, "bits or", ent * tot / 8, "bytes")
-    print("Size of file: ", tot, "bytes")
-    print("Delta: ", tot - ent * tot / 8, "bytes compressable theoritically")
-    print("Best Theoritical Coding ratio: ", 8 / ent)
+    if args.choice == "byte":
+        probs = [count / total_bytes for count in byte_counts.values()]
+        entropy = -sum(p * log2(p) for p in probs if p != 0)
+        print(f"Entropy per byte: {entropy} bits or {entropy / 8} bytes")
+        print(f"Entropy of file: {entropy * total_bytes} bits or {entropy * total_bytes / 8} bytes")
 
-    # p1 = h / tot
-    # p0 = (tot - h) / tot
-    # print("Probability to be high: ", p1, h, tot)
-
-    # # Realised late, I could have calculated byte entropy and wouldn't need
-    # # bit counting
-    # ent = p1 * (log2(tot) - log2(h)) + p0 * (log2(tot) - log2(tot - h))
-    # print("Informational entropy per bit: ", ent, "bits")
-    # print("Entropy per byte: ", ent * 8, "bits")
-    # print("Entropy of entire file: ", ent * tot, "bits")
+    elif args.choice == "bit":
+        p1 = total_bits_set / (total_bytes * 8)
+        p0 = 1 - p1
+        entropy = p1 * (log2(total_bytes * 8) - log2(total_bits_set)) + p0 * (log2(total_bytes * 8) - log2((total_bytes * 8) - total_bits_set))
+        print(f"Informational entropy per bit: {entropy} bits")
+        print(f"Entropy per byte: {entropy * 8} bits")
+        print(f"Entropy of entire file: {entropy * total_bytes * 8} bits")
 
 if __name__ == "__main__":
     main()
