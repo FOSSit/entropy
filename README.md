@@ -1,13 +1,16 @@
-# Entropy
+Install Your CLI Application:
+Open a terminal and navigate to the directory containing your setup.py file. Then, run the following command to install your CLI application:
 
-See the informational entropy of a file (assuming the encoded symbols are bytes or bits)
-This doesn't necessarily give the best possible compression, as for certain data, it is possible
-to identify bit sequences as symbols such that it minimises the entropy.
-
-Here we assume that a byte is the only symbol encoded and output the entropy which
-can reflect accurately the compression ratios possible for byte level compression algorithms
-
-
+```bash
+cd directory
+pip install .
 ```
-python3 entropy.py source.txt
+This command tells pip to install the current directory (.) as a Python package, using the setup.py file.
+
+Test Your CLI Application:
+After installation, users can run your script from the command line using the entropy-calculator command. Test your CLI application to ensure it works as expected:
+
+```bash
+python entropy.py bit <file1> [<file2> ...]
+python entropy.py byte <file1> [<file2> ...]
 ```
