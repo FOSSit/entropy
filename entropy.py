@@ -3,6 +3,7 @@ import pathlib as pt
 from math import log2
 import numpy as np
 
+
 def _cl_co():
     def co(i):
         o = 0
@@ -18,11 +19,19 @@ def _cl_co():
 bitcount = _cl_co()
 
 def main(argv=sys.argv):
+    bit = False
     files = []
     if len(argv[1:]) == 0:
         print("Provide a file")
         return
     elif len(argv[1:])>0:
+        if '-b' in argv:
+            bit = True
+            buff = argv.pop(argv.index('-b'))
+        elif '--bit' in argv:
+            bit = True
+            buff = argv.pop(argv.index('--bit'))
+        
         for f in argv[1:]:
             files.append(f)
 
@@ -67,10 +76,16 @@ def main(argv=sys.argv):
         print(f"\nFile: {file}")
         print(probs)
         print(counts)
-        print("Entropy per byte: ", ent, "bits or", ent / 8, "bytes")
-        print("Entropy of file: ", ent * tot, "bits or", ent * tot / 8, "bytes")
-        print("Size of file: ", tot, "bytes")
-        print("Delta: ", tot - ent * tot / 8, "bytes compressable theoritically")
+        if bit:
+            print(f"Entropy per bit: {ent} bits")
+            print(f"Entropy of file: {ent*tot} bits")
+            print("Size of file: ", tot*8, "bits")
+            print("Delta: ", tot - ent * tot, "bits compressable theoritically")
+        else:
+            print(f"Entropy per byte: {ent/8} bytes")
+            print("Entropy of file: ", ent * tot / 8, "bytes")
+            print("Size of file: ", tot, "bytes")
+            print("Delta: ", tot - ent * tot / 8, "bytes compressable theoritically")
         print("Best Theoritical Coding ratio: ", 8 / ent)
 
     # p1 = h / tot
