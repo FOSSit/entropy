@@ -22,39 +22,42 @@ def main(argv=sys.argv):
         print("Provide a file")
         return
 
-    f = pt.Path(argv[1])
+    f = []
+    for i in argv[1:]:
+        f.append(pt.Path(i))
 
     tot = 0
     counts = np.zeros(256, dtype=np.uint32)
     # h = 0
-    with f.open("rb") as fp:
-        while (b := fp.read(256)):
-            i = -1
-            for i in range(7, len(b), 8):
-                # h += bitcount(b[i]) \
-                # + bitcount(b[i - 1]) \
-                # + bitcount(b[i - 2]) \
-                # + bitcount(b[i - 3]) \
-                # + bitcount(b[i - 4]) \
-                # + bitcount(b[i - 5]) \
-                # + bitcount(b[i - 6]) \
-                # + bitcount(b[i - 7])
-                # tot += 64
-                tot += 8
-                counts[b[i]] += 1
-                counts[b[i - 1]] += 1
-                counts[b[i - 2]] += 1
-                counts[b[i - 3]] += 1
-                counts[b[i - 4]] += 1
-                counts[b[i - 5]] += 1
-                counts[b[i - 6]] += 1
-                counts[b[i - 7]] += 1
+    for i in range(len(f)):
+        with f[i].open("rb") as fp:
+            while (b := fp.read(256)):
+                i = -1
+                for i in range(7, len(b), 8):
+                    # h += bitcount(b[i]) \
+                    # + bitcount(b[i - 1]) \
+                    # + bitcount(b[i - 2]) \
+                    # + bitcount(b[i - 3]) \
+                    # + bitcount(b[i - 4]) \
+                    # + bitcount(b[i - 5]) \
+                    # + bitcount(b[i - 6]) \
+                    # + bitcount(b[i - 7])
+                    # tot += 64
+                    tot += 8
+                    counts[b[i]] += 1
+                    counts[b[i - 1]] += 1
+                    counts[b[i - 2]] += 1
+                    counts[b[i - 3]] += 1
+                    counts[b[i - 4]] += 1
+                    counts[b[i - 5]] += 1
+                    counts[b[i - 6]] += 1
+                    counts[b[i - 7]] += 1
 
-            for i in range(i + 1, len(b)):
-                # tot += 8
-                # h += bitcount(b[i])
-                counts[b[i]] += 1
-                tot += 1
+                for i in range(i + 1, len(b)):
+                    # tot += 8
+                    # h += bitcount(b[i])
+                    counts[b[i]] += 1
+                    tot += 1
 
     probs = counts / tot
     ent = -1 * (probs * np.log2(np.where(probs == 0, np.ones(1), probs))).sum()
@@ -80,3 +83,4 @@ def main(argv=sys.argv):
 
 if __name__ == "__main__":
     main()
+
