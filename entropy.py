@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import pathlib as pt
 from math import log2
