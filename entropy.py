@@ -16,14 +16,7 @@ def _cl_co():
     return LUT.__getitem__ # fastest way to count bits in a byte
 
 bitcount = _cl_co()
-
-def main(argv=sys.argv):
-    if len(argv) == 1:
-        print("Provide a file")
-        return
-
-    f = pt.Path(argv[1])
-
+def process_file(file_path):
     tot = 0
     counts = np.zeros(256, dtype=np.uint32)
     # h = 0
@@ -53,12 +46,14 @@ def main(argv=sys.argv):
             for i in range(i + 1, len(b)):
                 # tot += 8
                 # h += bitcount(b[i])
-                counts[b[i]] += 1
                 tot += 1
+                counts[b[i]] += 1
+                 
 
     probs = counts / tot
     ent = -1 * (probs * np.log2(np.where(probs == 0, np.ones(1), probs))).sum()
     if ent == 0: ent = -1 * ent
+    print(f"stats for file: {file_path}")
     print(probs)
     print(counts)
     print("Entropy per byte: ", ent, "bits or", ent / 8, "bytes")
@@ -66,6 +61,15 @@ def main(argv=sys.argv):
     print("Size of file: ", tot, "bytes")
     print("Delta: ", tot - ent * tot / 8, "bytes compressable theoritically")
     print("Best Theoritical Coding ratio: ", 8 / ent)
+def main(argv=sys.argv):
+    if len(argv) == 1:
+        print("Provide a file")
+        return
+
+    for file_path in  = argv[1:]:
+        process_file(file_path)
+
+    
 
     # p1 = h / tot
     # p0 = (tot - h) / tot
