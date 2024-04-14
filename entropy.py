@@ -18,7 +18,7 @@ def _cl_co():
 bitcount = _cl_co()
 
 def main(argv=sys.argv):
-    if len(argv) == 1:
+    if len(argv) < 2:
         print("Provide a file")
         return
 
@@ -26,57 +26,32 @@ def main(argv=sys.argv):
 
     tot = 0
     counts = np.zeros(256, dtype=np.uint32)
-    # h = 0
+
     with f.open("rb") as fp:
         while (b := fp.read(256)):
-            i = -1
-            for i in range(7, len(b), 8):
-                # h += bitcount(b[i]) \
-                # + bitcount(b[i - 1]) \
-                # + bitcount(b[i - 2]) \
-                # + bitcount(b[i - 3]) \
-                # + bitcount(b[i - 4]) \
-                # + bitcount(b[i - 5]) \
-                # + bitcount(b[i - 6]) \
-                # + bitcount(b[i - 7])
-                # tot += 64
-                tot += 8
-                counts[b[i]] += 1
-                counts[b[i - 1]] += 1
-                counts[b[i - 2]] += 1
-                counts[b[i - 3]] += 1
-                counts[b[i - 4]] += 1
-                counts[b[i - 5]] += 1
-                counts[b[i - 6]] += 1
-                counts[b[i - 7]] += 1
-
-            for i in range(i + 1, len(b)):
-                # tot += 8
-                # h += bitcount(b[i])
+            for i in range(len(b)):
                 counts[b[i]] += 1
                 tot += 1
 
     probs = counts / tot
     ent = -1 * (probs * np.log2(np.where(probs == 0, np.ones(1), probs))).sum()
     if ent == 0: ent = -1 * ent
-    print(probs)
-    print(counts)
-    print("Entropy per byte: ", ent, "bits or", ent / 8, "bytes")
-    print("Entropy of file: ", ent * tot, "bits or", ent * tot / 8, "bytes")
-    print("Size of file: ", tot, "bytes")
-    print("Delta: ", tot - ent * tot / 8, "bytes compressable theoritically")
-    print("Best Theoritical Coding ratio: ", 8 / ent)
 
-    # p1 = h / tot
-    # p0 = (tot - h) / tot
-    # print("Probability to be high: ", p1, h, tot)
+    print(f"Entropy per byte: {ent} bits or {ent / 8} bytes")
+    print(f"Entropy of file: {ent * tot} bits or {ent * tot / 8} bytes")
+    print(f"Size of file: {tot} bytes")
 
-    # # Realised late, I could have calculated byte entropy and wouldn't need
-    # # bit counting
-    # ent = p1 * (log2(tot) - log2(h)) + p0 * (log2(tot) - log2(tot - h))
-    # print("Informational entropy per bit: ", ent, "bits")
-    # print("Entropy per byte: ", ent * 8, "bits")
-    # print("Entropy of entire file: ", ent * tot, "bits")
+    if len(argv) > 2 and argv[2] == "--bit-level":
+        bit_counts = np.zeros(8, dtype=np.uint32)
+        for i in range(len(counts)):
+            for j in range(8):
+                bit_counts[j] += (i & (1 << j)) > 0
+
+        bit_probs = bit_counts / tot
+        bit_ent = -1 * (bit_probs * np.log2(np.where(bit_probs == 0, np.ones(1), bit_probs))).sum()
+        if bit_ent == 0: bit_ent = -1 * bit_ent
+
+        print(f"Bit-level entropy: {bit_ent} bits or {bit_ent} bits per byte")
 
 if __name__ == "__main__":
     main()
